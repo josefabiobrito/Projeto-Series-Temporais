@@ -26,15 +26,8 @@ plot(co_stl)
 lambda_AP<-BoxCox.lambda(ts_AP, method = 'guerrero')
 lambda_AP
 ts_AP_BC<-BoxCox(ts_AP,lambda_AP)
-plot_AP_BC<-autoplot(ts_AP_BC)+
-  geom_line(linewidth = 0.9, color = 'blue')+
-  xlab('Tempo')+
-  ylab('')+
-  theme_minimal()
-plot_AP_BC
+autoplot(ts_AP_BC)
 
 lambda_co<-BoxCox.lambda(ts_co, method = 'guerrero')
 lambda_co
-ts_co_BC<-BoxCox(ts_co,lambda_co)
-autoplot(ts_co_BC)+
-  geom_line()
+
