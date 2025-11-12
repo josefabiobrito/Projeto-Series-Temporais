@@ -140,10 +140,15 @@ autoplot(ts_AP_BC)+
 
 #SUAVIZAÇAO EXPONENCIAL SIMPLES
 fit_SES<-HoltWinters(Nile, beta= FALSE, gamma = FALSE)
+<<<<<<< HEAD
 pred_SES<-predict(fit_SES, n.ahead=10)
 plot_Nile <- autoplot(Nile, series = "Original") +
   autolayer(fitted(fit_SES)[, "xhat"], series = "Suavização Exponencial") +
   autolayer(pred_SES, series = "Previsão com SES")+
+=======
+plot_Nile <- autoplot(Nile, series = "Original") +
+  autolayer(fitted(fit_SES)[, "xhat"], series = "Suavização Exponencial") +
+>>>>>>> 5c132f5f89617be195e00b7ebe569c3380953cec
   labs(
     x = "Tempo",
     y = "Fluxo (x100hm³)",
@@ -151,8 +156,12 @@ plot_Nile <- autoplot(Nile, series = "Original") +
   ) +
   scale_color_manual(
     values = c("Original" = "gray", 
+<<<<<<< HEAD
                "Suavização Exponencial" = "red",
                "Previsão com SES" = "orange")
+=======
+               "Suavização Exponencial" = "red")
+>>>>>>> 5c132f5f89617be195e00b7ebe569c3380953cec
   ) +
   theme_minimal() +
   theme(
@@ -166,10 +175,15 @@ plot_Nile
 
 #SUAVIZAÇÃO DE HOLT
 fit_Holt<-HoltWinters(uspop,gamma = FALSE)
+<<<<<<< HEAD
 pred_Holt<- predict(fit_Holt, n.ahead = 5)
 plot_Holt<- autoplot(uspop, series = "Original") +
   autolayer(fitted(fit_Holt)[, "xhat"], series = "Suavização de Holt") +
   autolayer(pred_Holt, series = "Previsão com Holt")+
+=======
+plot_Holt<- autoplot(uspop, series = "Original") +
+  autolayer(fitted(fit_Holt)[, "xhat"], series = "Suavização de Holt") +
+>>>>>>> 5c132f5f89617be195e00b7ebe569c3380953cec
   labs(
     x = "Tempo",
     y = "População (1M)",
@@ -177,8 +191,12 @@ plot_Holt<- autoplot(uspop, series = "Original") +
   ) +
   scale_color_manual(
     values = c("Original" = "gray", 
+<<<<<<< HEAD
                "Suavização de Holt" = "red",
                "Previsão com Holt" = "orange")
+=======
+               "Suavização de Holt" = "red")
+>>>>>>> 5c132f5f89617be195e00b7ebe569c3380953cec
   ) +
   theme_minimal() +
   theme(
@@ -192,10 +210,15 @@ plot_Holt
 
 #SUAVIZAÇÃO DE HOLT-WINTERS
 fit_HW<-HoltWinters(AirPassengers, seasonal = 'multiplicative')
+<<<<<<< HEAD
 pred_HW<-predict(fit_HW, n.ahead = 10)
 plot_HW<- autoplot(AirPassengers, series = "Original") +
   autolayer(fitted(fit_HW)[, "xhat"], series = "Suavização de Holt-Winters") +
   autolayer(pred_HW, series = "Previsão com Holt-Winters")+
+=======
+plot_HW<- autoplot(ts_AP, series = "Original") +
+  autolayer(fitted(fit_HW)[, "xhat"], series = "Suavização de Holt-Winters") +
+>>>>>>> 5c132f5f89617be195e00b7ebe569c3380953cec
   labs(
     x = "Tempo",
     y = "Contagem (x1.000)",
@@ -203,8 +226,12 @@ plot_HW<- autoplot(AirPassengers, series = "Original") +
   ) +
   scale_color_manual(
     values = c("Original" = "gray", 
+<<<<<<< HEAD
                "Suavização de Holt-Winters" = "red",
                "Previsão com Holt-Winters" = 'orange')
+=======
+               "Suavização de Holt-Winters" = "red")
+>>>>>>> 5c132f5f89617be195e00b7ebe569c3380953cec
   ) +
   theme_minimal() +
   theme(
