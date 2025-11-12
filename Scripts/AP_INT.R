@@ -144,6 +144,8 @@ pred_SES<-predict(fit_SES, n.ahead=10)
 plot_Nile <- autoplot(Nile, series = "Original") +
   autolayer(fitted(fit_SES)[, "xhat"], series = "Suavização Exponencial") +
   autolayer(pred_SES, series = "Previsão com SES")+
+plot_Nile <- autoplot(Nile, series = "Original") +
+  autolayer(fitted(fit_SES)[, "xhat"], series = "Suavização Exponencial") +
   labs(
     x = "Tempo",
     y = "Fluxo (x100hm³)",
@@ -153,7 +155,7 @@ plot_Nile <- autoplot(Nile, series = "Original") +
     values = c("Original" = "gray", 
                "Suavização Exponencial" = "red",
                "Previsão com SES" = "orange")
-  ) +
+  )+
   theme_minimal() +
   theme(
     legend.position = "inside",
@@ -170,6 +172,8 @@ pred_Holt<- predict(fit_Holt, n.ahead = 5)
 plot_Holt<- autoplot(uspop, series = "Original") +
   autolayer(fitted(fit_Holt)[, "xhat"], series = "Suavização de Holt") +
   autolayer(pred_Holt, series = "Previsão com Holt")+
+plot_Holt<- autoplot(uspop, series = "Original") +
+  autolayer(fitted(fit_Holt)[, "xhat"], series = "Suavização de Holt") +
   labs(
     x = "Tempo",
     y = "População (1M)",
@@ -179,7 +183,7 @@ plot_Holt<- autoplot(uspop, series = "Original") +
     values = c("Original" = "gray", 
                "Suavização de Holt" = "red",
                "Previsão com Holt" = "orange")
-  ) +
+  )+
   theme_minimal() +
   theme(
     legend.position = "inside",
@@ -196,6 +200,8 @@ pred_HW<-predict(fit_HW, n.ahead = 10)
 plot_HW<- autoplot(AirPassengers, series = "Original") +
   autolayer(fitted(fit_HW)[, "xhat"], series = "Suavização de Holt-Winters") +
   autolayer(pred_HW, series = "Previsão com Holt-Winters")+
+plot_HW<- autoplot(ts_AP, series = "Original") +
+  autolayer(fitted(fit_HW)[, "xhat"], series = "Suavização de Holt-Winters") +
   labs(
     x = "Tempo",
     y = "Contagem (x1.000)",
