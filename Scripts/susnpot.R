@@ -12,19 +12,13 @@ SPY<-sunspot.year
 
 class(SPY)
 start(SPY);end(SPY);frequency(SPY)
-plot<-autoplot(SPY,
+plot<-autoplot(sunspot.year,
          xlab = 'Tempo',
-         ylab = 'Número médio')+
-  geom_line(size = 0.9, colour = 'blue')+
+         ylab = 'Número médio',
+         size =0.9,
+         color = 'blue')+
   labs(title = 'Número médio de manchas solares por ano')+
-  scale_x_continuous(breaks = seq(1700,1988, by = 25))+
-  theme_light()+
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
-    plot.subtitle = element_text(hjust = 0.5, size = 11, face = "italic"),
-    axis.title = element_text(face = "bold"),
-    legend.position = "bottom"          
-  )
+  theme_minimal()+
 show(plot)
 #ggsave(filename = "Sunspot.jpg",
 #       plot = plot,
@@ -33,4 +27,5 @@ show(plot)
 #       height = 6,
 #       units = "in")
 
-plot(Acf(SPY, lag.max = 20, type = 'partial'))
+acf_SPY<-Acf(SPY, lag.max = 20, type = 'correlation')
+plot(acf_SPY)
