@@ -40,11 +40,11 @@ for (n in nomes){
     geom_line(size = 0.9, colour = "red")+
     theme_minimal()
   show(plot)
-  ggsave(filename = str_glue("AIDS_GRL_{n$UF[1]}.png"),
-         plot = plot,
-         path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-         width = 8,
-         height = 6,
-         units = "in",
-         dpi = 300)
+  #ggsave(filename = str_glue("AIDS_GRL_{n$UF[1]}.png"),
+  #       plot = plot,
+  #       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+  #       width = 8,
+  #       height = 6,
+  #       units = "in",
+  #       dpi = 300)
 }

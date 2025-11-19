@@ -39,13 +39,13 @@ for (n in names(df_tipos)){
     geom_line(size = 0.9, colour = "blue")+
     theme_minimal()
   show(plot)
-  ggsave(filename = str_glue("Vendas_{n}.png"),
-         plot = plot,
-         path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-         width = 8,
-         height = 6,
-         units = "in",
-         dpi = 300)
+  #ggsave(filename = str_glue("Vendas_{n}.png"),
+  #       plot = plot,
+  #       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+  #       width = 8,
+  #       height = 6,
+  #       units = "in",
+  #       dpi = 300)
 }
 
 VENDAS$Data.Venda <- dmy(VENDAS$Data.Venda)
@@ -69,10 +69,11 @@ p2<-autoplot(ts_total, ylab = "Valor agregado (x 100 milhões R$)") +
        subtitle = "Fonte: Ministério da Fazenda") +
   geom_line(size = 0.9, colour = "darkred") +
   theme_minimal()
-ggsave(filename = str_glue("Vendas_Total_TD.png"),
-       plot = p2,
-       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-       width = 8,
-       height = 6,
-       units = "in",
-       dpi = 300)
+show(p2)
+#ggsave(filename = str_glue("Vendas_Total_TD.png"),
+#       plot = p2,
+#       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+#       width = 8,
+#       height = 6,
+#       units = "in",
+#       dpi = 300)

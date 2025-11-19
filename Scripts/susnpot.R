@@ -25,11 +25,12 @@ plot<-autoplot(SPY,
     axis.title = element_text(face = "bold"),
     legend.position = "bottom"          
   )
+show(plot)
+#ggsave(filename = "Sunspot.jpg",
+#       plot = plot,
+#       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+#       width = 8,
+#       height = 6,
+#       units = "in")
 
-ggsave(filename = "Sunspot.jpg",
-       plot = plot,
-       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-       width = 8,
-       height = 6,
-       units = "in")
-
+plot(Acf(SPY, lag.max = 20, type = 'partial'))

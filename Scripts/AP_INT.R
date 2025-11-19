@@ -125,7 +125,6 @@ show(plot_coMANC)
 co_stl<-stl(ts_co, s.window = 'periodic')
 plot(co_stl)
 
-
 #Transformação de Box-Cox
 
 lambda_AP<-BoxCox.lambda(ts_AP, method = 'guerrero')
@@ -143,7 +142,7 @@ fit_SES<-HoltWinters(Nile, beta= FALSE, gamma = FALSE)
 pred_SES<-predict(fit_SES, n.ahead=10)
 plot_Nile <- autoplot(Nile, series = "Original") +
   autolayer(fitted(fit_SES)[, "xhat"], series = "Suavização Exponencial") +
-  autolayer(pred_SES, series = "Previsão com SES")+
+  autolayer(pred_SES, series = "Previsão com SES")
 plot_Nile <- autoplot(Nile, series = "Original") +
   autolayer(fitted(fit_SES)[, "xhat"], series = "Suavização Exponencial") +
   labs(
@@ -166,12 +165,13 @@ plot_Nile <- autoplot(Nile, series = "Original") +
   )
 plot_Nile
 
+
 #SUAVIZAÇÃO DE HOLT
 fit_Holt<-HoltWinters(uspop,gamma = FALSE)
 pred_Holt<- predict(fit_Holt, n.ahead = 5)
 plot_Holt<- autoplot(uspop, series = "Original") +
   autolayer(fitted(fit_Holt)[, "xhat"], series = "Suavização de Holt") +
-  autolayer(pred_Holt, series = "Previsão com Holt")+
+  autolayer(pred_Holt, series = "Previsão com Holt")
 plot_Holt<- autoplot(uspop, series = "Original") +
   autolayer(fitted(fit_Holt)[, "xhat"], series = "Suavização de Holt") +
   labs(
@@ -199,7 +199,7 @@ fit_HW<-HoltWinters(AirPassengers, seasonal = 'multiplicative')
 pred_HW<-predict(fit_HW, n.ahead = 10)
 plot_HW<- autoplot(AirPassengers, series = "Original") +
   autolayer(fitted(fit_HW)[, "xhat"], series = "Suavização de Holt-Winters") +
-  autolayer(pred_HW, series = "Previsão com Holt-Winters")+
+  autolayer(pred_HW, series = "Previsão com Holt-Winters")
 plot_HW<- autoplot(ts_AP, series = "Original") +
   autolayer(fitted(fit_HW)[, "xhat"], series = "Suavização de Holt-Winters") +
   labs(

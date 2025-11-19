@@ -19,13 +19,13 @@ plot_bid<-autoplot(ts_compra)+
        subtitle ="Fonte: Banco Central do Brasil" )+
   ylab("R$")+
   theme_minimal()
-ggsave(filename = "Compra_dolar.png",
-       plot = plot_bid,
-       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-       width = 8,
-       height = 6,
-       units = "in",
-       dpi = 300)
+#ggsave(filename = "Compra_dolar.png",
+#       plot = plot_bid,
+#       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+#       width = 8,
+#       height = 6,
+#       units = "in",
+#       dpi = 300)
 show(plot)
 
 plot_ask<-autoplot(ts_venda)+
@@ -34,11 +34,11 @@ plot_ask<-autoplot(ts_venda)+
        subtitle ="Fonte: Banco Central do Brasil" )+
   ylab("R$")+
   theme_minimal()
-ggsave(filename = "Venda_dolar.png",
-       plot = plot_ask,
-       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-       width = 8,
-       height = 6,
-       units = "in",
-       dpi = 300)
+#ggsave(filename = "Venda_dolar.png",
+#       plot = plot_ask,
+#       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+#       width = 8,
+#       height = 6,
+#       units = "in",
+#       dpi = 300)
 show(plot_ask)

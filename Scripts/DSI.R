@@ -14,17 +14,18 @@ DSI<- DSI%>%
     Ano = ANO.REGIS,
     Quantidade = QTD.DSI
   )
-DSI_ts<-ts(DSI$Quantidade, start = c(2000,01,01), frequency = 1)
-plot<-autoplot(DSI_ts, ylab = "Quantidade (1.000)")+
+DSI_ts<-ts(as.numeric(DSI$Quantidade), start = 2000, frequency = 1)
+plot<-autoplot(DSI_ts, ylab = "Quantidade (1.000)", size = 0.9, color = 'blue')+
   labs(title = "Declarações Simplificadas de Importação por ano",
        subtitle = "Fonte: Ministério da Fazenda")+
-  geom_line(size = 0.9, colour = "blue")+
   theme_minimal()
-ggsave(filename = "DSI.png",
-       plot = plot,
-       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-       width = 8,
-       height = 6,
-       units = "in",
-       dpi = 300
-       )
+show(plot)
+#ggsave(filename = "DSI.png",
+#       plot = plot,
+#       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+#       width = 8,
+#       height = 6,
+#       units = "in",
+#       dpi = 300
+#       )
+
