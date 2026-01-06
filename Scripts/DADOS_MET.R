@@ -4,6 +4,8 @@
 # DATA: 07/10/2025
 # DESCRIÇÃO: ANÁLISE DE DADOS METEOROLÓGICOS DE SÃO CARLOS
 #            2022 - 07/10/2025
+
+#Bibliotecas
 library(ggplot2)
 library(forecast)
 library(tidyr)
@@ -12,9 +14,11 @@ library(dplyr)
 library(lubridate)
 library(tsibble)
 
+#Carregando dados
 DADOS_GERAL<-read.csv2("C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Datasets/Dados_met_SC.csv")
 head(DADOS_GERAL,n=10)
 
+#Transformação em dados mensais
 DADOS_RESUM<-DADOS_GERAL%>%
   mutate(ano_mes = floor_date(Data, "month"))%>%
   group_by(ano_mes)%>%
@@ -27,6 +31,7 @@ DADOS_RESUM<-DADOS_GERAL%>%
 mes_inicio<- month(DADOS_RESUM$ano_mes[1])
 ano_inicio<-year(DADOS_RESUM$ano_mes[1])
 
+#Séries temporais
 ts_temperatura<- ts(DADOS_RESUM$Temperatura_Media,
                       start = c(ano_inicio,mes_inicio),
                       frequency = 12)
@@ -40,6 +45,7 @@ ts_chuva<- ts(DADOS_RESUM$Vol_Chuva,
                       start = c(ano_inicio,mes_inicio),
                       frequency = 12)
 
+#Gráficos inciais
 plot_temp<-autoplot(ts_temperatura)+
   labs(y = "Temperatura (°C)", 
        title = "Temperatura média mensal em São Carlos 2022-2025", 
@@ -47,13 +53,13 @@ plot_temp<-autoplot(ts_temperatura)+
   geom_line(size = 0.3, colour = 'blue')+
   theme_minimal()
 show(plot_temp)
-ggsave(filename = "Temperatura_SC.png",
-         plot = plot_temp,
-         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
-         width = 8,
-         height = 6,
-         units = "in",
-         dpi = 300)
+#ggsave(filename = "Temperatura_SC.png",
+#         plot = plot_temp,
+#         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
+#         width = 8,
+#         height = 6,
+#         units = "in",
+#         dpi = 300)
 
 
 plot_amp<-autoplot(ts_amplitude)+
@@ -63,13 +69,14 @@ plot_amp<-autoplot(ts_amplitude)+
   geom_line(size = 0.3, colour = 'blue')+
   theme_minimal()
 show(plot_amp)
-ggsave(filename = "Amplitude_SC.png",
-         plot = plot_amp,
-         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
-         width = 8,
-         height = 6,
-         units = "in",
-         dpi = 300)
+#ggsave(filename = "Amplitude_SC.png",
+#         plot = plot_amp,
+#         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
+#         width = 8,
+#         height = 6,
+#         units = "in",
+#         dpi = 300)
+#
 
 plot_umid<-autoplot(ts_umidade)+
   labs(y = "Umidade (%)", 
@@ -78,13 +85,13 @@ plot_umid<-autoplot(ts_umidade)+
   geom_line(size = 0.3, colour = 'blue')+
   theme_minimal()
 show(plot_umid)
-ggsave(filename = "Umidade_SC.png",
-         plot = plot_umid,
-         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
-         width = 8,
-         height = 6,
-         units = "in",
-         dpi = 300)
+#ggsave(filename = "Umidade_SC.png",
+#         plot = plot_umid,
+#         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
+#         width = 8,
+#         height = 6,
+#         units = "in",
+#         dpi = 300)
 
 plot_chuva<-autoplot(ts_chuva)+
   labs(y = "Chuva (mm)", 
@@ -93,13 +100,13 @@ plot_chuva<-autoplot(ts_chuva)+
   geom_line(size = 0.3, colour = 'blue')+
   theme_minimal()
 show(plot_chuva)
-ggsave(filename = "Chuva_SC.png",
-         plot = plot_chuva,
-         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
-         width = 8,
-         height = 6,
-         units = "in",
-         dpi = 300)
+#ggsave(filename = "Chuva_SC.png",
+#         plot = plot_chuva,
+#         path = "C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Gráficos",
+#         width = 8,
+#         height = 6,
+#         units = "in",
+#         dpi = 300)
 
 
 

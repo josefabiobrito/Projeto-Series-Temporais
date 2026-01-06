@@ -4,7 +4,7 @@
 # DATA: 14/09/2025
 # DESCRIÇÃO: ANÁLISE DO CONSUMO RESIDÊNCIAL DE ENERGIA NO BRASIL E ESTADOS 
 
-
+#Bibliotecas
 library(readxl)
 library(dplyr)
 library(tidyr)
@@ -13,9 +13,11 @@ library(forecast)
 library(ggplot2)
 library(openxlsx)
 
+#Carregando dados
 df_raw <- read_excel("C:\\Users\\josef\\OneDrive\\Documentos\\PUB\\Datasets\\CONSUMO RESIDENCIAL POR UF.xlsx")
 
 
+#Transposição dos dados e separação por estado
 dfs_ufs<-list()
 for (uf in unique(df_raw$UF)) {
   df_uf<-filter(df_raw, UF == uf)
@@ -26,6 +28,7 @@ for (uf in unique(df_raw$UF)) {
   dfs_ufs[[uf]]<-df_uf
 }
 
+#Gráfico inicial por estado
 for (uf in dfs_ufs){
   ts_uf<- ts(uf$Consumo, start = 2004,frequency = 12)
   plot<-autoplot(ts_uf, ylab = 'Consumo(MWh')+

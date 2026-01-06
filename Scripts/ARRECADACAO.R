@@ -5,7 +5,7 @@
 # DESCRIÇÃO: ANÁLISE DA  RECEITA DE ARRECADAÇÃO TRIBUTÁRIA 
 #            BRUTA DA RECEITA FEDERAL BRASILEIRA
 
-
+#Bibliotecas
 library(ggplot2)
 library(forecast)
 library(tidyr)
@@ -13,8 +13,13 @@ library(dplyr)
 library(stringr)
 library(openxlsx)
 
+#Carregando dados
 ARRECADACAO<- read.xlsx("Datasets/arrecadacao-cnae.xlsx", sheet= "arrecadacao_total")
+
+#Transformação em série temporal
 ts_ARRECADACAO<-ts(ARRECADACAO$Receita,start = c(2016,01), frequency = 12)
+
+#Gráfico inicial
 plot<-autoplot(ts_ARRECADACAO,ylab = "Receita Bruta(1BR$)")+
   labs(title = "Arrecadação Bruta do Brasil",
        subtitle = "Fonte: Ministerio da Fazenda")+

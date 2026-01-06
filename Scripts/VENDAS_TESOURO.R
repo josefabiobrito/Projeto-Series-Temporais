@@ -5,13 +5,17 @@
 # DESCRIÇÃO: ANÁLISE DO VOLUME E RECEITA DE VENDAS DE TÍTULOS DO TESOURO DIRETO
 #            POR CATEGORIA DE TÍTULO
 
+#Bibliotecas
 library(forecast)
 library(tidyverse)
 library(ggplot2)
 library(openxlsx)
 library(dplyr)
 
+#Carregando dados
 VENDAS<-read.csv2("Datasets/vendastesourodireto.csv")
+
+#Agrupamento por tipo de título
 tipos<- unique(VENDAS$Tipo.Titulo)
 df_tipos<-list()
 for (t in tipos){  
@@ -28,7 +32,23 @@ for (t in tipos){
   df_tipos[[t]]<-VENDAS_tipo_mensal
 }
 
+VENDAS$Data.Venda <- dmy(VENDAS$Data.Venda)
+VENDAS$Valor <- as.numeric(gsub("\\.", "", gsub(",", ".", VENDAS$Valor)))
+VENDAS$Valor <- VENDAS$Valor / 1e+08  
 
+VENDAS_total_mensal <- VENDAS %>%
+  mutate(AnoMes = floor_date(Data.Venda, "month")) %>%
+  group_by(AnoMes) %>%
+  summarise(Total = sum(Valor, na.rm = TRUE))
+
+#Séries temporais e gráficos iniciais
+
+ts_total <- ts(
+  VENDAS_total_mensal$Total,
+  start = c(year(VENDAS_total_mensal$AnoMes[1]),
+            month(VENDAS_total_mensal$AnoMes[1])),
+  frequency = 12
+)
 
 for (n in names(df_tipos)){
   t<-df_tipos[[n]]
@@ -48,21 +68,6 @@ for (n in names(df_tipos)){
   #       dpi = 300)
 }
 
-VENDAS$Data.Venda <- dmy(VENDAS$Data.Venda)
-VENDAS$Valor <- as.numeric(gsub("\\.", "", gsub(",", ".", VENDAS$Valor)))
-VENDAS$Valor <- VENDAS$Valor / 1e+08  
-
-VENDAS_total_mensal <- VENDAS %>%
-  mutate(AnoMes = floor_date(Data.Venda, "month")) %>%
-  group_by(AnoMes) %>%
-  summarise(Total = sum(Valor, na.rm = TRUE))
-
-ts_total <- ts(
-  VENDAS_total_mensal$Total,
-  start = c(year(VENDAS_total_mensal$AnoMes[1]),
-            month(VENDAS_total_mensal$AnoMes[1])),
-  frequency = 12
-)
 
 p2<-autoplot(ts_total, ylab = "Valor agregado (x 100 milhões R$)") +
   labs(title = "Vendas agregadas do Tesouro Direto",

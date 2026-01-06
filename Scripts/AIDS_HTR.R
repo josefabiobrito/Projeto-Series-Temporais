@@ -5,7 +5,7 @@
 # DESCRIÇÃO: ANÁLISE DOS CASOS DE AIDS NA POPULAÇÃO HÉTEROSEXUAL BRASILEIRA
 
 
-
+#Bibliotecas
 library(openxlsx)
 library(forecast)
 library(ggplot2)
@@ -13,7 +13,10 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 
+#Carregando dados
 AIDS<- read.xlsx("Datasets/AIDS_HTR.xlsx")
+
+#Tratamento dos dados
 AIDS<- rename(AIDS, UF = UF.Notificação)
 AIDS$Total<-NULL
 ufs<- AIDS$UF
@@ -29,6 +32,7 @@ for (uf in ufs){
   nomes[[uf]]<-df_uf
 }
 
+#Transformação em Série temporal e gráficos inciais
 TSs_ufs<-list()
 
 for (n in nomes){

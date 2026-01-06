@@ -1,9 +1,17 @@
+# PROJETO: ${PUB- SÉRIES TEMPORAIS}
+# ARQUIVO: ${Desemprego_Brasil.R}
+# AUTOR: ${José Fábio Viana de Brito}
+# DATA: 31/10/2025
+# DESCRIÇÃO: ANÁLISE DA DÍVIDA LIQUIDA NACIONAL
+
+#Bibliotecas
 library(rbcb)
 library(forecast)
 library(ggplot2)
 library(readr)
 library(dplyr)
 
+#Carregando dados
 dados_divida <- get_series(
   code = c("Divida_Liquida_PIB" = 4504),
   start_date = "2001-12-31",
@@ -11,17 +19,18 @@ dados_divida <- get_series(
   as = "ts"
 )
 
+#Gráficos inciais
 plot<-autoplot(dados_divida)+
   geom_line(size = 0.9, color = 'blue')+
   labs(title = "Dívida Liquida do setor público- Federal",
        subtitle= "Fonte: Banco Central do Brasil")+
   ylab("% PIB")+
   theme_minimal()
-ggsave(filename = "Divida_liquida_BR.png",
-       plot = plot,
-       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-       width = 8,
-       height = 6,
-       units = "in",
-       dpi = 300)
+#ggsave(filename = "Divida_liquida_BR.png",
+#       plot = plot,
+#       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+#       width = 8,
+#       height = 6,
+#       units = "in",
+#       dpi = 300)
 show(plot)

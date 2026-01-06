@@ -4,7 +4,7 @@
 # DATA: 19/09/2025
 # DESCRIÇÃO: ANÁLISE DOS CASOS DE AIDS NA POPULAÇÃO GERAL BRASILEIRA
 
-
+#Bibliotecas
 library(openxlsx)
 library(forecast)
 library(ggplot2)
@@ -13,8 +13,11 @@ library(tidyr)
 library(stringr)
 library(readr)
 
+#Carregar dados
 AIDS<- read.xlsx("Datasets/AIDS_GRL.xlsx")
 AIDS<- rename(AIDS, UF = UF.Notificação)
+
+#Tratar dados
 AIDS$Total<-NULL
 ufs<- AIDS$UF
 nomes<-list()
@@ -29,6 +32,7 @@ for (uf in ufs){
   nomes[[uf]]<-df_uf
 }
 
+#Transformação em série temporal e plotar gráficos iniciais
 TSs_ufs<-list()
 
 for (n in nomes){
