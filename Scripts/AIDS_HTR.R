@@ -38,6 +38,9 @@ TSs_ufs<-list()
 for (n in nomes){
   ts_uf<- ts(n$Notificação, start = 1980,frequency = 1)
   TSs_ufs[[n$UF[1]]]<-ts_uf
+}
+for (nome_uf in names(TSs_ufs)){
+  ts_uf<-TSs_uf[[nome_uf]]
   plot<-autoplot(ts_uf, ylab = 'Notificação')+
     labs(title = str_glue("Notificação de AIDS em Heterossexuais {n$UF[1]}"),
          subtitle ="Fonte: DataSUS" )+
@@ -67,60 +70,48 @@ for (nome_uf in names(TSs_ufs)) {
   
   serie_bruta <- TSs_ufs[[nome_uf]]
   serie_limpa <- head(serie_bruta,-1)
-  serie_treino <- serie_limpa + 1
+  serie_treino <- head(serie_limpa + 1,-5)
+  serie_teste <-tail(serie_limpa+1,5)
   
-  mod_auto <- tryCatch({
-    auto.arima(serie_treino, lambda = 0)
-  }, error = function(e) return(NULL))
+  mod_auto <- auto.arima(serie_treino, lambda = 0, max.d = 2)
   
   # Modelo 2: Conservador (0,1,1)
-  mod_manual1 <- tryCatch({
-    Arima(serie_treino, order = c(0, 1, 1), lambda = 0)
-  }, error = function(e) return(NULL))
+  mod_manual1 <- Arima(serie_treino, order = c(0, 1, 1), include.drift = FALSE, lambda = 0)
   
   # Modelo 3: Flexível (0,1,2)
-  mod_manual2 <- tryCatch({
-    Arima(serie_treino, order = c(0, 1, 2),  lambda = 0)
-  }, error = function(e) return(NULL))
+  mod_manual2 <- Arima(serie_treino, order = c(0, 1, 2), include.drift = FALSE, lambda = 0)
   
   # Modelo 4: (0,2,1)
-  mod_manual3 <- tryCatch({
-    Arima(serie_treino, order = c(0, 2, 1),  lambda = 0)
-  }, error = function(e) return(NULL))
+  mod_manual3 <- Arima(serie_treino, order = c(0, 2, 1), include.drift = FALSE, lambda = 0)
   
   # Modelo 5: (2,1,0)
-  mod_manual4 <- tryCatch({
-    Arima(serie_treino, order = c(2, 1, 0),  lambda = 0)
-  }, error = function(e) return(NULL))
+  mod_manual4 <- Arima(serie_treino, order = c(2, 1, 0), include.drift = FALSE, lambda = 0)
   
-  get_metrics <- function(modelo, nome) {
-    if (is.null(modelo)) return(NULL) 
+  modelos<-list(mod_auto, mod_manual1, mod_manual2, mod_manual3, mod_manual4)
+  extrair_metricas <- function(modelo, dados_teste) {
+    aic_val <- modelo$aic
+    prev <- forecast(modelo, h = length(dados_teste))
+    acc  <- accuracy(prev, dados_teste)
+    rmse_val <- acc[2, "RMSE"]
+    mase_val <- acc[2, "MASE"]
+    nome <- forecast:::arima.string(modelo, padding = FALSE)
     
-    if (grepl("Auto", nome)) {
-      desc <- forecast:::arima.string(modelo, padding = FALSE)
-      nome <- paste("Auto:", desc)
-    }
-    
-    acc <- accuracy(modelo)
-    data.frame(
-      Modelo = nome,
-      AIC = round(modelo$aic, 2),
-      RMSE = round(acc[1, "RMSE"], 2),
-      MASE = round(acc[1, "MASE"], 3)
-    )
+    return(data.frame(Modelo = nome, 
+                      AIC = round(aic_val, 2), 
+                      RMSE_Teste = round(rmse_val, 2), 
+                      MASE_Teste = round(mase_val, 3)))
   }
   
   lista_resultados <- list(
-    get_metrics(mod_auto, "Auto"),
-    get_metrics(mod_manual1, "Manual: ARIMA(0,1,1) "),
-    get_metrics(mod_manual2, "Manual: ARIMA(0,1,2) "),
-    get_metrics(mod_manual3, "Manual: ARIMA(0,2,1) "),
-    get_metrics(mod_manual4, "Manual: ARIMA(2,1,0) ")
+    extrair_metricas(mod_auto, serie_teste),
+    extrair_metricas(mod_manual1, serie_teste),
+    extrair_metricas(mod_manual2, serie_teste),
+    extrair_metricas(mod_manual3, serie_teste),
+    extrair_metricas(mod_manual4, serie_teste)
     
   )
   
-  tabela_resultados <- bind_rows(lista_resultados[!sapply(lista_resultados, is.null)]) %>% 
-    arrange(AIC)
+  tabela_resultados <- bind_rows(lista_resultados[!sapply(lista_resultados, is.null)])
   
   cat("\n========================================\n")
   cat(str_glue(" ESTADO: {nome_uf} "))
@@ -131,36 +122,12 @@ for (nome_uf in names(TSs_ufs)) {
     cat("Não foi possível ajustar modelos (possivelmente dados insuficientes).\n")
   }
   cat("\n")
+  melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
+  plot<-autoplot(forecast(melhor_modelo, h=5)) +
+    autolayer(serie_teste, series="Dados Reais") +
+    labs(title = str_glue("Previsão Notificação AIDS-{nome_uf} vs Realidade"),
+         subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
+  show(plot)
 }
 
-melhores_modelos_df <- tibble(
-  UF = c("Rondônia", "Acre", "Amazonas", "Roraima", "Pará", "Amapá", 
-         "Tocantins", "Maranhão", "Piauí", "Ceará", "Rio Grande do Norte", 
-         "Paraíba", "Pernambuco", "Alagoas", "Sergipe", "Bahia", 
-         "Minas Gerais", "Espírito Santo", "Rio de Janeiro", "São Paulo", 
-         "Paraná", "Santa Catarina", "Rio Grande do Sul", "Mato Grosso do Sul", 
-         "Mato Grosso", "Goiás", "Distrito Federal", "Brasil"),
-  
-  Modelo = c("Auto: ARIMA(1,2,1)", "Auto: ARIMA(0,1,1) with drift", "Auto: ARIMA(1,2,1)", 
-             "Auto: ARIMA(0,1,1) with drift", "Auto: ARIMA(0,2,1)", "Auto: ARIMA(0,1,1) with drift", 
-             "Auto: ARIMA(0,2,1)", "Auto: ARIMA(0,2,1)", "Auto: ARIMA(0,2,2)", 
-             "Auto: ARIMA(2,2,0)", "Auto: ARIMA(1,2,1)", "Auto: ARIMA(0,2,1)", 
-             "Auto: ARIMA(0,2,1)", "Auto: ARIMA(0,2,1)", "Manual: ARIMA(2,1,0)", 
-             "Manual: ARIMA(2,1,0)", "Auto: ARIMA(1,2,1)", "Auto: ARIMA(0,2,1)", 
-             "Manual: ARIMA(2,1,0)", "Auto: ARIMA(1,2,1)", "Manual: ARIMA(2,1,0)", 
-             "Auto: ARIMA(0,2,1)", "Auto: ARIMA(0,2,1)", "Auto: ARIMA(0,2,1)", 
-             "Auto: ARIMA(1,2,1)", "Auto: ARIMA(1,2,1)", "Manual: ARIMA(2,1,0)", 
-             "Auto: ARIMA(0,2,0)"),
-  
-  AIC = c(17.57, 65.74, 46.40, 50.42, 40.43, 39.37, 13.74, 19.99, 30.63, 
-          31.57, 40.30, 44.85, 13.91, 21.04, 31.99, 15.23, -10.34, 40.10, 
-          3.03, -16.56, 27.71, 6.29, 18.83, 9.20, 25.28, 43.29, 38.11, -39.60),
-  
-  RMSE = c(24.22, 11.03, 106.48, 17.70, 89.18, 16.25, 15.66, 61.69, 35.82, 
-           63.49, 27.14, 41.12, 78.96, 34.75, 20.20, 52.80, 83.86, 49.57, 
-           112.29, 367.78, 90.24, 114.00, 174.48, 40.78, 47.94, 47.83, 35.94, 978.45),
-  
-  MASE = c(1.067, 0.959, 1.148, 0.976, 1.180, 1.064, 1.008, 1.051, 1.276, 
-           1.331, 1.202, 1.118, 1.183, 1.115, 1.013, 0.932, 0.924, 1.246, 
-           0.817, 0.806, 0.922, 1.015, 0.974, 1.233, 1.120, 1.195, 1.019, 0.794)
-)
+
