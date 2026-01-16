@@ -230,3 +230,50 @@ plot_HW<- autoplot(ts_AP, series = "Original") +
     legend.title = element_text(face = "bold")
   )
 plot_HW
+
+
+#Ajuste e seleção de modelos
+treino <- head(AirPassengers, -12)
+teste  <- tail(AirPassengers, 12)
+
+fit_auto <- auto.arima(treino, lambda = 0)
+
+fit_manual1 <- Arima(treino, 
+                     order = c(1, 1, 2), 
+                     seasonal = c(0, 1, 1), 
+                     lambda = 0)
+
+fit_manual2 <- Arima(treino, 
+                     order = c(2, 1, 1), 
+                     seasonal = c(0, 1, 0), 
+                     lambda = 0)
+
+extrair_metricas <- function(modelo, dados_teste) {
+  aic_val <- modelo$aic
+  prev <- forecast(modelo, h = length(dados_teste))
+  acc  <- accuracy(prev, dados_teste)
+  rmse_val <- acc[2, "RMSE"]
+  mase_val <- acc[2, "MASE"]
+  nome <- forecast:::arima.string(modelo, padding = FALSE)
+  
+  return(data.frame(Modelo = nome, 
+                    AIC = round(aic_val, 2), 
+                    RMSE_Teste = round(rmse_val, 2), 
+                    MASE_Teste = round(mase_val, 3)))
+}
+
+tabela_comparativa <- bind_rows(
+  extrair_metricas(fit_auto, teste),
+  extrair_metricas(fit_manual1, teste),
+  extrair_metricas(fit_manual2, teste)
+) %>% 
+  arrange(AIC)
+
+print(tabela_comparativa)
+
+melhor_modelo <- if(tabela_comparativa$AIC[1] <= fit_auto$aic) fit_auto else fit_manual1
+autoplot(forecast(melhor_modelo, h=12)) +
+  autolayer(teste, series="Dados Reais") +
+  labs(title = "Previsão AirPassengers vs Realidade",
+       subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
+
