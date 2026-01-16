@@ -11,16 +11,20 @@ library(ggplot2)
 library(readr)
 library(dplyr)
 library(lubridate)
+library(xts)
 
 #Carregando dados
-dados_dolar<-get_currency("USD","2011-08-01","2025-10-2025", "data.frame")
+dados_dolar<-get_currency("USD","2011-08-01","2025-10-18", "data.frame")
 #Criação das séries temporais
+TSs<-list()
 ts_compra<-ts(dados_dolar$bid, 
               start = c(year(dados_dolar$date[1]),yday(dados_dolar$date[1])), 
               frequency = 252)
+TSs[['Compra']]<-ts_compra
 ts_venda<-ts(dados_dolar$ask, 
               start = c(year(dados_dolar$date[1]),yday(dados_dolar$date[1])), 
               frequency = 252)
+TSs[['Venda']]<-ts_venda
 
 #Gráficos iniciais
 plot_bid<-autoplot(ts_compra)+
@@ -36,7 +40,7 @@ plot_bid<-autoplot(ts_compra)+
 #       height = 6,
 #       units = "in",
 #       dpi = 300)
-show(plot)
+show(plot_bid)
 
 plot_ask<-autoplot(ts_venda)+
   geom_line(size = 0.5, color = 'blue')+
@@ -52,3 +56,78 @@ plot_ask<-autoplot(ts_venda)+
 #       units = "in",
 #       dpi = 300)
 show(plot_ask)
+
+#Correlogramas
+for(nome in names(TSs)){
+  plotAcf<-ggAcf(TSs[[nome]],lag.max = 24, type = 'correlation')+
+    labs(title = str_glue("Autocorrelação para série de {nome}"))
+  show(plotAcf)
+}
+
+for(nome in names(TSs)){
+  plotPacf<-ggAcf(TSs[[nome]],lag.max = 24, type = 'partial')+
+    labs(title = str_glue("Autocorrelação parcial para série de {nome}"))
+  show(plotPacf)
+}
+
+#Ajuste de modelos
+for (nome in names(TSs)) {
+  
+  serie_bruta <- TSs[[nome]]+1
+  serie_treino <- head(serie_bruta ,-20)
+  serie_teste <-tail(serie_bruta,20)
+  
+  mod_auto <- auto.arima(serie_treino, lambda = 0)
+  
+  
+  mod_manual1 <- Arima(serie_treino, order = c(0, 1, 2), lambda = 0)
+  
+  
+  mod_manual2 <- Arima(serie_treino, order = c(0, 1, 1), lambda = 0)
+  
+  
+  mod_manual3 <- Arima(serie_treino, order = c(1, 1, 1), lambda = 0)
+  
+  modelos<-list(mod_auto, mod_manual1, mod_manual2, mod_manual3)
+  extrair_metricas <- function(modelo, dados_teste) {
+    aic_val <- modelo$aic
+    prev <- forecast(modelo, h = length(dados_teste))
+    acc  <- accuracy(prev, dados_teste)
+    rmse_val <- acc[2, "RMSE"]
+    mase_val <- acc[2, "MASE"]
+    nome <- forecast:::arima.string(modelo, padding = FALSE)
+    
+    return(data.frame(Modelo = nome, 
+                      AIC = round(aic_val, 2), 
+                      RMSE_Teste = round(rmse_val, 2), 
+                      MASE_Teste = round(mase_val, 3)))
+  }
+  
+  lista_resultados <- list(
+    extrair_metricas(mod_auto, serie_teste),
+    extrair_metricas(mod_manual1, serie_teste),
+    extrair_metricas(mod_manual2, serie_teste),
+    extrair_metricas(mod_manual3, serie_teste)
+    
+  )
+  
+  tabela_resultados <- bind_rows(lista_resultados[!sapply(lista_resultados, is.null)])
+  
+  cat("\n========================================\n")
+  cat(str_glue(" {nome} "))
+  cat("\n========================================\n")
+  if (nrow(tabela_resultados) > 0) {
+    print(tabela_resultados)
+  } else {
+    cat("Não foi possível ajustar modelos (possivelmente dados insuficientes).\n")
+  }
+  cat("\n")
+  melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
+  plot<-autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
+    autolayer(serie_teste, series="Dados Reais") +
+    labs(title = str_glue("Previsão-{nome} vs Realidade"),
+         subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
+  show(plot)
+}
+
+

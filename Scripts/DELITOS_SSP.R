@@ -42,8 +42,8 @@ for (n in names){
 TSs[1]<-NULL
 
 #Gráficos inciais
-for (s in names(series)){
-  plot_s<-ggplot(NULL, mapping = aes(x = Delitos_SP$ano, y = series[[s]]))+
+for (s in names(TSs)){
+  plot_s<-ggplot(NULL, mapping = aes(x = Delitos_SP$ano, y = TSs[[s]]))+
     geom_line(size = 0.9, color = 'blue')+
     labs(x = "Tempo",
          y = "Número",
@@ -77,13 +77,13 @@ for (nome in names(TSs)) {
   mod_auto <- auto.arima(serie_treino, lambda = 0)
   
   
-  mod_manual1 <- Arima(serie_treino, order = c(1, 1, 0),seasonal = c(0,1,1), lambda = 0)
+  mod_manual1 <- Arima(serie_treino, order = c(1, 1, 0), lambda = 0)
   
   
-  mod_manual2 <- Arima(serie_treino, order = c(0, 0, 0),seasonal = c(1,1,0), lambda = 0)
+  mod_manual2 <- Arima(serie_treino, order = c(0, 1, 1), lambda = 0)
   
   
-  mod_manual3 <- Arima(serie_treino, order = c(1, 1, 1),seasonal = c(1,1,1), lambda = 0)
+  mod_manual3 <- Arima(serie_treino, order = c(1, 1, 1), lambda = 0)
   
   modelos<-list(mod_auto, mod_manual1, mod_manual2, mod_manual3)
   extrair_metricas <- function(modelo, dados_teste) {
@@ -126,5 +126,4 @@ for (nome in names(TSs)) {
          subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
   show(plot)
 }
-
 
