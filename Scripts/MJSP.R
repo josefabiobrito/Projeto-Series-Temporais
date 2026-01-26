@@ -75,7 +75,7 @@ for(nome in names(TSs_ufs)){
     plot<-autoplot(TSs_ufs[[nome]][[cat]], ylab = 'Número de ocorrências')+
       labs(title = str_glue("Série temporal {cat}-{nome}"),
            subtitle ="Fonte: MSP-BR" )+
-      geom_line(size = 0.9, colour = "blue")+
+      geom_line(linewidth = 0.9, colour = "blue")+
       theme_minimal()
     show(plot)
   }
@@ -85,33 +85,29 @@ for(nome in names(TSs_ufs)){
 
 for(nome in names(TSs_ufs)){
   for (cat in names(TSs_ufs[[nome]])){
-    plotAcf<-ggAcf(TSs_ufs[[nome]][[cat]],lag.max = 36, type = 'correlation')+
+    plotAcf<-ggAcf(diff(TSs_ufs[[nome]][[cat]]),lag.max = 36, type = 'correlation')+
       labs(title = str_glue("Autocorrelação para série de {cat}-{nome}"))
-    show(plotAcf)
-  }
-}
-
-for(nome in names(TSs_ufs)){
-  for (cat in names(TSs_ufs[[nome]])){
-    plotPacf<-ggAcf(TSs_ufs[[nome]][[cat]],lag.max = 36, type = 'partial')+
+    plotPacf<-ggAcf(diff(TSs_ufs[[nome]][[cat]]),lag.max = 36, type = 'partial')+
       labs(title = str_glue("Autocorrelação parcial para série de {cat}-{nome}"))
+    show(plotAcf)
     show(plotPacf)
   }
 }
 
+
 #Ajuste de modelos
-for (nome in names(TSs)) {
+for (nome in names(TSs_ufs)) {
   for (cat in names(TSs_ufs[[nome]])){
-    serie_treino <- head(TSs[[nome]][[cat]] ,-12)
-    serie_teste <-tail(TSs[[nome]][[cat]],12)
+    serie_treino <- head(TSs_ufs[[nome]][[cat]]+1 ,-12)
+    serie_teste <-tail(TSs_ufs[[nome]][[cat]]+1,12)
     
     mod_auto <- auto.arima(serie_treino)
     
-    mod_manual1 <- Arima(serie_treino, order = c(1, 0, 1))
+    mod_manual1 <- Arima(serie_treino, order = c(0, 1, 1))
     
-    mod_manual2 <- Arima(serie_treino, order = c(1, 0, 1),seasonal = c(0,1,0))
+    mod_manual2 <- Arima(serie_treino, order = c(1, 1, 1),seasonal = c(0,0,1))
     
-    mod_manual3 <- Arima(serie_treino, order = c(0, 1, 1))
+    mod_manual3 <- Arima(serie_treino, order = c(2, 1, 1))
     
     mod_manual4 <- Arima(serie_treino, order = c(1, 1, 1),seasonal = c(1,0,0))
     

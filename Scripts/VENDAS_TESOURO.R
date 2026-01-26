@@ -43,42 +43,119 @@ VENDAS_total_mensal <- VENDAS %>%
 
 #Séries temporais e gráficos iniciais
 
+TSs<-list()
+for (n in names(df_tipos)){
+  t<-df_tipos[[n]]
+  ts_tipo<- ts(t$Total, start = c(year(t$AnoMes[1]),month(t$AnoMes[1])), frequency = 12)
+  TSs[[n]]<-ts_tipo
+}
 ts_total <- ts(
   VENDAS_total_mensal$Total,
   start = c(year(VENDAS_total_mensal$AnoMes[1]),
             month(VENDAS_total_mensal$AnoMes[1])),
   frequency = 12
 )
+TSs[['Vendas Acumuladas']]<-ts_total
 
-for (n in names(df_tipos)){
-  t<-df_tipos[[n]]
-  ts_tipo<- ts(t$Total, start = c(year(t$AnoMes[1]),month(t$AnoMes[1])), frequency = 12)
-  plot<-autoplot(ts_tipo, ylab = "Valor (x 100 milhões R$)")+
-    labs(title = str_glue("Vendas de títulos: {n} "),
-         subtitle = "Ministerio da Fazenda")+
-    geom_line(size = 0.9, colour = "blue")+
-    theme_minimal()
+for (nome in names(TSs)){
+  plot<-autoplot(TSs[[nome]], ylab = "Valor (x 100 milhões R$)")+
+      labs(title = str_glue("Vendas de títulos: {nome} "),
+           subtitle = "Ministerio da Fazenda")+
+      geom_line(size = 0.9, colour = "blue")+
+      theme_minimal()
   show(plot)
-  #ggsave(filename = str_glue("Vendas_{n}.png"),
-  #       plot = plot,
-  #       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-  #       width = 8,
-  #       height = 6,
-  #       units = "in",
-  #       dpi = 300)
+    #ggsave(filename = str_glue("Vendas_{n}.png"),
+    #       plot = plot,
+    #       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
+    #       width = 8,
+    #       height = 6,
+    #       units = "in",
+    #       dpi = 300)
+}
+
+#Correlogramas
+
+for(nome in names(TSs)){
+  plotAcf<-ggAcf(diff(TSs[[nome]]),lag.max = 36, type = 'correlation')+
+    labs(title = str_glue("Autocorrelação para série de {nome}"))
+  plotPacf<-ggAcf(diff(TSs[[nome]]),lag.max = 36, type = 'partial')+
+    labs(title = str_glue("Autocorrelação parcial para série de {nome}"))
+  show(plotAcf)
+  show(plotPacf)
 }
 
 
-p2<-autoplot(ts_total, ylab = "Valor agregado (x 100 milhões R$)") +
-  labs(title = "Vendas agregadas do Tesouro Direto",
-       subtitle = "Fonte: Ministério da Fazenda") +
-  geom_line(size = 0.9, colour = "darkred") +
-  theme_minimal()
-show(p2)
-#ggsave(filename = str_glue("Vendas_Total_TD.png"),
-#       plot = p2,
-#       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
-#       width = 8,
-#       height = 6,
-#       units = "in",
-#       dpi = 300)
+#Ajuste de modelos
+safe_Arima <- function(y, order, seasonal = c(0,0,0), ...) {
+  tryCatch({
+    Arima(y, order = order, seasonal = seasonal, method="ML", ...)
+  }, error = function(e) return(NULL))
+}
+
+for (nome in names(TSs)) {
+  
+  dados_brutos <- TSs[[nome]] + 1
+  
+  if(!is.ts(dados_brutos)) {
+    dados_brutos <- ts(as.numeric(dados_brutos), frequency = 1)
+  }
+  
+  n <- length(dados_brutos)
+  serie_treino <- subset(dados_brutos, end = n - 12)
+  serie_teste  <- subset(dados_brutos, start = n - 11)
+  
+  mod_auto    <- tryCatch(auto.arima(serie_treino), error=function(e) NULL)
+  mod_manual1 <- safe_Arima(serie_treino, order = c(3, 1, 2))
+  mod_manual2 <- safe_Arima(serie_treino, order = c(2, 1, 1))
+  mod_manual3 <- safe_Arima(serie_treino, order = c(1, 1, 2))
+  mod_manual4 <- safe_Arima(serie_treino, order = c(1, 1, 1))
+  
+  modelos <- list(mod_auto, mod_manual1, mod_manual2, mod_manual3, mod_manual4)
+  
+  extrair_metricas <- function(modelo, dados_teste) {
+    if (is.null(modelo)) return(NULL)
+    
+    prev <- forecast(modelo, h = length(dados_teste))
+    
+    tryCatch({
+      acc  <- accuracy(prev, dados_teste)
+      return(data.frame(Modelo = forecast:::arima.string(modelo, padding = FALSE), 
+                        AIC = round(modelo$aic, 2), 
+                        RMSE_Teste = round(acc[2, "RMSE"], 2), 
+                        MASE_Teste = round(acc[2, "MASE"], 3)))
+    }, error = function(e) return(NULL))
+  }
+  
+  lista_resultados <- lapply(modelos, extrair_metricas, dados_teste = serie_teste)
+  lista_limpa <- lista_resultados[!sapply(lista_resultados, is.null)]
+  tabela_resultados <- bind_rows(lista_limpa)
+  
+  cat("\n========================================\n")
+  cat(str_glue(" {nome} "))
+  cat("\n========================================\n")
+  
+  if (nrow(tabela_resultados) > 0) {
+    print(tabela_resultados)
+    
+    indices_validos <- which(!sapply(modelos, is.null))
+    modelos_validos <- modelos[indices_validos]
+    aics <- sapply(modelos_validos, function(x) x$aic)
+    melhor_modelo <- modelos_validos[[which.min(aics)]]
+    
+    tryCatch({
+      plot <- autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
+        autolayer(serie_teste, series="Dados Reais") +
+        labs(title = str_glue("Previsão-{nome} vs Realidade"),
+             subtitle = str_glue("Modelo: {forecast:::arima.string(melhor_modelo)}")) +
+        theme_bw()
+      print(plot)
+    }, error = function(e) {
+      plot(forecast(melhor_modelo, h=length(serie_teste)), main=nome)
+      lines(serie_teste, col="red")
+    })
+    
+  } else {
+    cat("Não foi possível ajustar modelos (dados insuficientes ou erro de convergência).\n")
+  }
+  cat("\n")
+}
