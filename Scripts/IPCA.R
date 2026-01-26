@@ -37,13 +37,19 @@ for(grupo in grupos){
 }
 
 #Criação de séries temporais e gráficos iniciais
-for (obj in objetos){
-  ts_grp<-ts(obj$indice, start = c(2020,1), frequency = 12)
+TSs<-list()
+for (nome in names(objetos)){
+  ts_grp<-ts(objetos[[nome]]$indice, start = c(2020,1), frequency = 12)
+  TSs[[nome]]<-ts_grp
+}
+for(nome in names(TSs)){
+  ts_grp<-TSs[[nome]]
   plot<-autoplot(ts_grp, ylab = 'Valor índice')+
     labs(title = str_glue("IPCA referente a categoria {obj$Grupo[1]}"),
          subtitle ="Fonte: IBGE" )+
     geom_line(size = 0.9, colour = "blue")+
     theme_minimal()
+  show(plot)
   #ggsave(filename = str_glue("IPCA_{obj$Grupo[1]}.png"),
   #       plot = plot,
   #       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
@@ -52,3 +58,77 @@ for (obj in objetos){
   #       units = "in",
   #       dpi = 300)
 }
+
+
+#Correlogramas
+
+for(nome in names(TSs)){
+  plotAcf<-ggAcf(TSs[[nome]],lag.max = 36, type = 'correlation')+
+    labs(title = str_glue("Autocorrelação para série de {nome}"))
+  show(plotAcf)
+}
+
+for(nome in names(TSs)){
+  plotPacf<-ggAcf(TSs[[nome]],lag.max = 36, type = 'partial')+
+    labs(title = str_glue("Autocorrelação parcial para série de {nome}"))
+  show(plotPacf)
+}
+
+#Ajuste de modelos
+for (nome in names(TSs)) {
+  serie_treino <- head(TSs[[nome]] ,-6)
+  serie_teste <-tail(TSs[[nome]],6)
+  
+  mod_auto <- auto.arima(serie_treino)
+  
+  mod_manual1 <- Arima(serie_treino, order = c(1, 0, 1))
+  
+  mod_manual2 <- Arima(serie_treino, order = c(1, 0, 1),seasonal = c(0,1,0))
+  
+  mod_manual3 <- Arima(serie_treino, order = c(0, 1, 1))
+  
+  mod_manual4 <- Arima(serie_treino, order = c(1, 1, 1),seasonal = c(1,0,0))
+  
+  modelos<-list(mod_auto, mod_manual1, mod_manual2, mod_manual3, mod_manual4)
+  extrair_metricas <- function(modelo, dados_teste) {
+    aic_val <- modelo$aic
+    prev <- forecast(modelo, h = length(dados_teste))
+    acc  <- accuracy(prev, dados_teste)
+    rmse_val <- acc[2, "RMSE"]
+    mase_val <- acc[2, "MASE"]
+    nome <- forecast:::arima.string(modelo, padding = FALSE)
+    
+    return(data.frame(Modelo = nome, 
+                      AIC = round(aic_val, 2), 
+                      RMSE_Teste = round(rmse_val, 2), 
+                      MASE_Teste = round(mase_val, 3)))
+  }
+  
+  lista_resultados <- list(
+    extrair_metricas(mod_auto, serie_teste),
+    extrair_metricas(mod_manual1, serie_teste),
+    extrair_metricas(mod_manual2, serie_teste),
+    extrair_metricas(mod_manual3, serie_teste),
+    extrair_metricas(mod_manual4, serie_teste)
+    
+  )
+  
+  tabela_resultados <- bind_rows(lista_resultados[!sapply(lista_resultados, is.null)])
+  
+  cat("\n========================================\n")
+  cat(str_glue(" {nome} "))
+  cat("\n========================================\n")
+  if (nrow(tabela_resultados) > 0) {
+    print(tabela_resultados)
+  } else {
+    cat("Não foi possível ajustar modelos (possivelmente dados insuficientes).\n")
+  }
+  cat("\n")
+  melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
+  plot<-autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
+    autolayer(serie_teste, series="Dados Reais") +
+    labs(title = str_glue("Previsão-{nome} vs Realidade"),
+         subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
+  show(plot)
+}
+

@@ -10,6 +10,7 @@ library(forecast)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(stringr)
 
 #Carregando dados
 HBR<-read.xlsx("Datasets/Hanseniase_Brasil.xlsx")
@@ -36,3 +37,69 @@ autoplot(TT_BR_TS, ylab = "Notificações")+
        subtitle = "Fonte: SUS")+
   geom_line(size = 1.1, colour = 'blue')+
   theme_minimal()
+
+#Correlogramas
+plotAcf<- ggAcf(TT_BR_TS, lag.max = 24, type = "correlation")+
+  labs(title = 'Autocorrelação série de notificações de Hanseníase- BR')
+show(plotAcf)
+
+plotPacf<- ggAcf(TT_BR_TS, lag.max = 24, type = 'partial')+
+  labs(title = 'Autocorrelação parcial série de notificações de Hanseníase- BR')
+show(plotPacf)
+
+
+#Ajuste de Modelo
+serie_treino <- head(TT_BR_TS ,-5)
+serie_teste <-tail(TT_BR_TS,5)
+
+mod_auto <- auto.arima(serie_treino, lambda = 0)
+
+
+mod_manual1 <- Arima(serie_treino, order = c(1, 1, 0), lambda = 0)
+
+
+mod_manual2 <- Arima(serie_treino, order = c(1, 2,  0), lambda = 0)
+
+
+mod_manual3 <- Arima(serie_treino, order = c(1, 1, 1), lambda = 0)
+
+modelos<-list(mod_auto, mod_manual1, mod_manual2, mod_manual3)
+extrair_metricas <- function(modelo, dados_teste) {
+  aic_val <- modelo$aic
+  prev <- forecast(modelo, h = length(dados_teste))
+  acc  <- accuracy(prev, dados_teste)
+  rmse_val <- acc[2, "RMSE"]
+  mase_val <- acc[2, "MASE"]
+  nome <- forecast:::arima.string(modelo, padding = FALSE)
+  
+  return(data.frame(Modelo = nome, 
+                    AIC = round(aic_val, 2), 
+                    RMSE_Teste = round(rmse_val, 2), 
+                    MASE_Teste = round(mase_val, 3)))
+}
+
+lista_resultados <- list(
+  extrair_metricas(mod_auto, serie_teste),
+  extrair_metricas(mod_manual1, serie_teste),
+  extrair_metricas(mod_manual2, serie_teste),
+  extrair_metricas(mod_manual3, serie_teste)
+  
+)
+
+tabela_resultados <- bind_rows(lista_resultados[!sapply(lista_resultados, is.null)])
+
+cat("\n========================================\n")
+cat("Ajuste de Modelos- Notificações de Hanseníase")
+cat("\n========================================\n")
+if (nrow(tabela_resultados) > 0) {
+  print(tabela_resultados)
+} else {
+  cat("Não foi possível ajustar modelos (possivelmente dados insuficientes).\n")
+}
+cat("\n")
+melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
+plot<-autoplot(forecast(mod_manual1, h=length(serie_teste))) +
+  autolayer(serie_teste, series="Dados Reais") +
+  labs(title = str_glue("Previsão Notificações vs Realidade"),
+       subtitle = str_glue("Modelo:{forecast:::arima.string(mod_manual1)}"))
+show(plot)
