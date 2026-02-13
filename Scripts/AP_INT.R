@@ -1,6 +1,7 @@
 #Bibliotecas
 library(forecast)
 library(ggplot2)
+library(stringr)
 
 #Carregando dados
 ts_AP<-AirPassengers
@@ -14,6 +15,39 @@ autoplot(ts_co)+
   ylab("partes por milhão (ppm)")+
   theme_minimal()
 
+#Detrending:
+AP <- AirPassengers
+time <- time(AP)
+reg <- lm(AP ~ time)
+plot <- autoplot(AP) +
+  geom_line(linewidth = 0.9, color = 'blue') +
+  geom_abline(intercept = coef(reg)[1], slope = coef(reg)[2], color = 'red', linewidth = 0.8) +
+  labs(title = 'Número de passageiros 1949-1960') +
+  xlab("Tempo") +
+  ylab("Passageiros (x1000)") +
+  theme_minimal()
+show(plot)
+
+plot_res <- autoplot(ts(reg$residuals, start = start(AP), frequency = frequency(AP))) +
+  geom_line(linewidth = 0.8, color = 'darkorange') +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  labs(title = 'Resíduos da Regressão Linear ao longo do Tempo') +
+  xlab("Tempo") +
+  ylab("Resíduos") +
+  theme_minimal()
+show(plot_res)
+
+
+
+difs<-ndiffs(AP)
+plot <- autoplot(diff(AP,difs)) +
+  geom_line(linewidth = 0.9, color = 'blue') +
+  labs(title = 'Número de passageiros diferenciados',
+       subtitle = str_glue('Número de diferenciações:{difs}')) +
+  xlab("Tempo") +
+  ylab("Passageiros (x1000)") +
+  theme_minimal()
+show(plot)
 
 #Média móvel central de ordem 5
 ts_AP_MAC5<-ma(ts_AP,order = 5, centre = TRUE)

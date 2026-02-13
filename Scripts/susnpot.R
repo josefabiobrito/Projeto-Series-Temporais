@@ -30,6 +30,17 @@ show(plot)
 
 acf_SPY<-Acf(diff(sunspot.year), lag.max = 20, type = 'partial')
 
+#simulando AR(p):
+
+sim <- arima.sim(model = list(ar = 0.7), n = 100)
+plot<-autoplot(sim,
+               xlab = 'Tempo',
+               ylab = 'Número médio',
+               size =0.9,
+               color = 'blue')+
+  labs(title = 'Série simulada')+
+  theme_minimal()+
+  show(plot)
 #Teste de modelo
 
 treino <- head(SPY, -22)
