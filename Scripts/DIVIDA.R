@@ -36,13 +36,25 @@ plot<-autoplot(dados_divida)+
 show(plot)
 
 #Correlogramas
-plotAcf<- ggAcf(dados_divida, lag.max = 24, type = "correlation")+
-  labs(title = 'Autocorrelação série da dívida pública')
-show(plotAcf)
+d<-ndiffs(dados_divida)
+plotAcf<- ggAcf(diff(dados_divida,differences = d), lag.max = 24, type = "correlation")+
+  labs(title = '')
 
-plotPacf<- ggAcf(dados_divida, lag.max = 24, type = 'partial')+
-  labs(title = 'Autocorrelação parcial série da dívida pública')
-show(plotPacf)
+plotPacf<- ggAcf(diff(dados_divida,differences = d), lag.max = 24, type = 'partial')+
+  labs(title = '')
+
+plot_final<-(plotAcf/plotPacf)+ 
+  plot_annotation(
+  title = str_glue("Autocorrelação e Autocorrelação Parcial - Divida Pública"),
+  subtitle = str_glue("Número de diferenciações: {d}"),
+  theme = theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 11)
+  )
+)
+
+print(plot_final)
+  
 
 #Ajuste de Modelo
 

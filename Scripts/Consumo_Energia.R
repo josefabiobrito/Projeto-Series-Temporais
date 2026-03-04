@@ -12,6 +12,7 @@ library(stringr)
 library(forecast)
 library(ggplot2)
 library(openxlsx)
+library(patchwork)
 
 #Carregando dados
 df_raw <- read.csv("C:/Users/josef/OneDrive/Documentos/PUB/Projeto-Series-Temporais/Datasets/CONSUMO RESIDENCIAL DE ENERGIA POR UF.csv")
@@ -47,16 +48,34 @@ for (nome_uf in names(TSs_ufs)){
 
 
 #Correlogramas
-for (nome_uf in names(TSs_ufs)){
-  plot_acf<- ggAcf(TSs_ufs[[nome_uf]], lag.max = 24, type = 'correlation')+
-    labs(title = str_glue("Autocorrelação da série de consumo de energia - {nome_uf}"))
-  show(plot_acf)
-}
-
-for (nome_uf in names(TSs_ufs)){
-  plot_pacf<- ggAcf(TSs_ufs[[nome_uf]], lag.max = 24, type = 'partial')+
-    labs(title = str_glue("Autocorrelação parcial da série de consumo de energia - {nome_uf}"))
-  show(plot_pacf)
+for (nome_uf in names(TSs_ufs)) {
+  
+  ts_atual <- TSs_ufs[[nome_uf]]
+  d <- ndiffs(ts_atual)
+  
+  if (d > 0) {
+    ts_plot <- diff(ts_atual, differences = d)
+  } else {
+    ts_plot <- ts_atual
+  }
+  
+  p1 <- ggAcf(ts_plot, lag.max = 20, type = 'correlation') +
+    ggtitle(NULL)
+  
+  p2 <- ggAcf(ts_plot, lag.max = 20, type = 'partial') +
+    ggtitle(NULL)
+  
+  plot_final <- (p1 / p2) +
+    plot_annotation(
+      title = str_glue("Autocorrelação e Autocorrelação Parcial (Consumo de Energia) - {nome_uf}"),
+      subtitle = str_glue("Número de diferenciações: {d}"),
+      theme = theme(
+        plot.title = element_text(size = 14, face = "bold"),
+        plot.subtitle = element_text(size = 11)
+      )
+    )
+  
+  print(plot_final)
 }
 
 

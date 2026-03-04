@@ -13,6 +13,7 @@ library(dplyr)
 library(lubridate)
 library(tsibble)
 library(readr)
+library(patchwork)
 
 meses<- c('janeiro' = 1,'fevereiro' = 2,'março' = 3,'abril' = 4,'maio' = 5,
           'junho' = 6 , 'julho'= 7, 'agosto'=8,'setembro'=9,'outubro'=10,
@@ -55,16 +56,34 @@ for (s in names(TSs)){
 
 
 #Correlogramas
-for(nome in names(TSs)){
-  plotAcf<-ggAcf(TSs[[nome]],lag.max = 24, type = 'correlation')+
-    labs(title = str_glue("Autocorrelação para série de {nome}"))
-  show(plotAcf)
-}
-
-for(nome in names(TSs)){
-  plotPacf<-ggAcf(TSs[[nome]],lag.max = 24, type = 'partial')+
-    labs(title = str_glue("Autocorrelação parcial para série de {nome}"))
-  show(plotPacf)
+for (nome in names(TSs)) {
+  
+  ts_atual <- TSs[[nome]]
+  d <- ndiffs(ts_atual)
+  
+  if (d > 0) {
+    ts_plot <- diff(ts_atual, differences = d)
+  } else {
+    ts_plot <- ts_atual
+  }
+  
+  p1 <- ggAcf(ts_plot, lag.max = 20, type = 'correlation') +
+    ggtitle(NULL)
+  
+  p2 <- ggAcf(ts_plot, lag.max = 20, type = 'partial') +
+    ggtitle(NULL)
+  
+  plot_final <- (p1 / p2) +
+    plot_annotation(
+      title = str_glue("Autocorrelação e Autocorrelação Parcial-{nome}"),
+      subtitle = str_glue("Número de diferenciações: {d}"),
+      theme = theme(
+        plot.title = element_text(size = 14, face = "bold"),
+        plot.subtitle = element_text(size = 11)
+      )
+    )
+  
+  print(plot_final)
 }
 
 #Ajuste de modelos

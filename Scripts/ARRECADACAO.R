@@ -39,11 +39,10 @@ ARRECADACAO_stl<-stl(ts_ARRECADACAO, s.window = 'periodic')
 plot(ARRECADACAO_stl)
 
 #Correlogramas
-plot<-ggAcf(ts_ARRECADACAO, lag.max = 36, type = "correlation")
+d<-ndiffs(ts_ARRECADACAO)
+plot<-ggAcf(diff(ts_ARRECADACAO, differences = d), lag.max = 36, type = "correlation")
 show(plot)
 
-ts_diff <- diff(diff(ts_ARRECADACAO, lag=12), differences=1)
-ggtsdisplay(ts_diff)
 
 #Ajuste e seleção de modelos
 treino <- head(ts_ARRECADACAO, -12)

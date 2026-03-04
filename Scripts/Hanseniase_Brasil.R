@@ -11,6 +11,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(patchwork)
 
 #Carregando dados
 HBR<-read.xlsx("Datasets/Hanseniase_Brasil.xlsx")
@@ -40,12 +41,22 @@ autoplot(TT_BR_TS, ylab = "Notificações")+
 
 #Correlogramas
 plotAcf<- ggAcf(TT_BR_TS, lag.max = 24, type = "correlation")+
-  labs(title = 'Autocorrelação série de notificações de Hanseníase- BR')
-show(plotAcf)
+  labs(title = '')
 
 plotPacf<- ggAcf(TT_BR_TS, lag.max = 24, type = 'partial')+
-  labs(title = 'Autocorrelação parcial série de notificações de Hanseníase- BR')
-show(plotPacf)
+  labs(title = '')
+
+plot_final<-(plotAcf/plotPacf)+
+  plot_annotation(
+    title = str_glue("Autocorrelação e Autocorrelação Parcial (AIDS HTR) - {nome_uf}"),
+    subtitle = str_glue("Número de diferenciações: {d}"),
+    theme = theme(
+      plot.title = element_text(size = 14, face = "bold"),
+      plot.subtitle = element_text(size = 11)
+    )
+  )
+
+print(plot_final)
 
 
 #Ajuste de Modelo

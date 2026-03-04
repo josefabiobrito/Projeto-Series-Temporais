@@ -12,6 +12,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(patchwork)
 
 #Carregando dados
 AIDS<- read.xlsx("Datasets/AIDS_HTR.xlsx")
@@ -50,19 +51,34 @@ for (nome_uf in names(TSs_ufs)){
 }
 
 #Autocorrelação das séries
-
 for (nome_uf in names(TSs_ufs)) {
-  plot <- ggAcf(TSs_ufs[[nome_uf]], lag.max = 20, type = 'correlation') +
-    labs(title = str_glue("Autocorrelação da série de notificações de AIDS - {nome_uf}"))
-  print(plot)
-}
-
-#Autocorrelação parcial das séries
-
-for (nome_uf in names(TSs_ufs)) {
-  plot <- ggAcf(TSs_ufs[[nome_uf]], lag.max = 20, type = 'partial') +
-    labs(title = str_glue("Autocorrelação parcial da série de notificações de AIDS - {nome_uf}"))
-  print(plot)
+  
+  ts_atual <- TSs_ufs[[nome_uf]]
+  d <- ndiffs(ts_atual)
+  
+  if (d > 0) {
+    ts_plot <- diff(ts_atual, differences = d)
+  } else {
+    ts_plot <- ts_atual
+  }
+  
+  p1 <- ggAcf(ts_plot, lag.max = 20, type = 'correlation') +
+    ggtitle(NULL)
+  
+  p2 <- ggAcf(ts_plot, lag.max = 20, type = 'partial') +
+    ggtitle(NULL)
+  
+  plot_final <- (p1 / p2) +
+    plot_annotation(
+      title = str_glue("Autocorrelação e Autocorrelação Parcial (AIDS HTR) - {nome_uf}"),
+      subtitle = str_glue("Número de diferenciações: {d}"),
+      theme = theme(
+        plot.title = element_text(size = 14, face = "bold"),
+        plot.subtitle = element_text(size = 11)
+      )
+    )
+  
+  print(plot_final)
 }
 
 #Ajuste de modelos e seleção
