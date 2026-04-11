@@ -103,7 +103,7 @@ for (nome in names(TSs_ufs)) {
     
     plot_final <- (p1 / p2) +
       plot_annotation(
-        title = str_glue("Autocorrelação e Autocorrelação Parcial ({cat-nome}"),
+        title = str_glue("Autocorrelação e Autocorrelação Parcial ({cat}-{nome}"),
         subtitle = str_glue("Número de diferenciações: {d}"),
         theme = theme(
           plot.title = element_text(size = 14, face = "bold"),
@@ -115,9 +115,10 @@ for (nome in names(TSs_ufs)) {
   print(plot_final)
 }
 
-
+melhores_modelos<-list()
 #Ajuste de modelos
 for (nome in names(TSs_ufs)) {
+  melhores_mod_uf<-list()
   for (cat in names(TSs_ufs[[nome]])){
     serie_treino <- head(TSs_ufs[[nome]][[cat]]+1 ,-12)
     serie_teste <-tail(TSs_ufs[[nome]][[cat]]+1,12)
@@ -168,11 +169,40 @@ for (nome in names(TSs_ufs)) {
     }
     cat("\n")
     melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
+    melhores_mod_uf[[cat]]<-melhor_modelo
     plot<-autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
       autolayer(serie_teste, series="Dados Reais") +
       labs(title = str_glue("Previsão {cat}-{nome} vs Realidade"),
            subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
     show(plot)
   }
+  melhores_modelos[[nome]]<-melhores_mod_uf
 }
 
+for (nome in names(melhores_modelos)){
+  for (cat in names(melhores_modelos[[nome]])){ 
+    
+    modelo <- melhores_modelos[[nome]][[cat]]
+    
+    if (is.null(modelo)) {
+      next
+    }
+    
+    cat("\n============================================================\n")
+    cat(str_glue(" {nome} - {cat} | MODELO: {forecast:::arima.string(modelo)} "))
+    cat("\n============================================================\n")
+    
+    teste <- checkresiduals(modelo, lag = 20, plot = FALSE)
+    print(teste)
+    
+    titulo_personalizado <- str_glue("Resíduos de {forecast:::arima.string(modelo)} - {nome} ({cat})")
+    
+    grafico_residuos <- ggtsdisplay(residuals(modelo), 
+                                    plot.type = "histogram", 
+                                    main = titulo_personalizado)
+    
+    print(grafico_residuos)
+    
+    Sys.sleep(2)
+  }
+}

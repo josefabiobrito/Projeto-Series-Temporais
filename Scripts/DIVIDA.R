@@ -112,3 +112,5 @@ plot<-autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
   labs(title = str_glue("Previsão Dívida pública vs Realidade"),
        subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
 show(plot)
+
+checkresiduals(melhor_modelo)

@@ -40,8 +40,16 @@ plot(ARRECADACAO_stl)
 
 #Correlogramas
 d<-ndiffs(ts_ARRECADACAO)
-plot<-ggAcf(diff(ts_ARRECADACAO, differences = d), lag.max = 36, type = "correlation")
-show(plot)
+plot_Acf<-ggAcf(diff(ts_ARRECADACAO, differences = d), lag.max = 36, type = "correlation")+
+  labs( title = str_glue("Correlograma da Arrecadação"),
+        subtitle = str_glue("Número de diferenças: {d}"))
+show(plot_Acf)
+
+plot_Pacf<-ggAcf(diff(ts_ARRECADACAO, differences = d), lag.max = 36, type = "partial")+
+  labs( title = str_glue("Correlograma da Arrecadação"),
+        subtitle = str_glue("Número de diferenças: {d}"))
+show(plot_Pacf)
+
 
 
 #Ajuste e seleção de modelos
@@ -90,4 +98,4 @@ autoplot(forecast(melhor_modelo, h=12)) +
   labs(title = "Previsão Arrecadação bruta vs Realidade",
        subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
 
-
+checkresiduals(melhor_modelo)

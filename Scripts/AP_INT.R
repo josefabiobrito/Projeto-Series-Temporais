@@ -311,3 +311,4 @@ autoplot(forecast(melhor_modelo, h=12)) +
   labs(title = "Previsão AirPassengers vs Realidade",
        subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
 
+checkresiduals(modelo, plot = TRUE)

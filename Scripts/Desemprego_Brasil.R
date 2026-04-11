@@ -115,6 +115,7 @@ for (nome in names(TSs)) {
   print(plot_final)
 }
 
+melhores_modelos<-list()
 #Ajuste de modelos
 for (nome in names(TSs)) {
   
@@ -168,6 +169,7 @@ for (nome in names(TSs)) {
   }
   cat("\n")
   melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
+  melhores_modelos[[nome]]<-melhor_modelo
   plot<-autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
     autolayer(serie_teste, series="Dados Reais") +
     labs(title = str_glue("Previsão-{nome} vs Realidade"),
@@ -175,7 +177,30 @@ for (nome in names(TSs)) {
   show(plot)
 }
 
-
+for (nome in names(melhores_modelos)){
+  modelo <- melhores_modelos[[nome]]
+  
+  if (is.null(modelo)) {
+    next
+  }
+  
+  cat("\n============================================================\n")
+  cat(str_glue(" {nome} | MODELO: {forecast:::arima.string(modelo)} "))
+  cat("\n============================================================\n")
+  
+  teste <- checkresiduals(modelo, plot = FALSE)
+  print(teste)
+  
+  titulo_personalizado <- str_glue("Resíduos de {forecast:::arima.string(modelo)} - {nome}")
+  
+  grafico_residuos <- ggtsdisplay(residuals(modelo), 
+                                  plot.type = "histogram", 
+                                  main = titulo_personalizado)
+  
+  print(grafico_residuos)
+  
+  Sys.sleep(2)
+}
 
 
 

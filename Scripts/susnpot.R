@@ -120,6 +120,6 @@ qqPlot(as.numeric(residuals(fit_809)),
 library(forecast)
 
 # Roda o Ljung-Box e plota os gráficos de diagnóstico
-checkresiduals(fit_809, lag = 25)
+checkresiduals(fit_809,lag = 25)
 
 Box.test(res, type = "Ljung-Box", lag = 25, fitdf = 17)

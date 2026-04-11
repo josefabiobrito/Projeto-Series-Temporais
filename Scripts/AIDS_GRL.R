@@ -92,25 +92,24 @@ for (nome_uf in names(TSs_ufs)) {
 }
 
 #Ajuste de modelos e seleção
+
+melhores_modelos<-list()
+
 for (nome_uf in names(TSs_ufs)) {
-  
   serie_bruta <- TSs_ufs[[nome_uf]]
   serie_limpa <- head(serie_bruta,-1)
-  serie_treino <- head(serie_limpa + 1,-5)
-  serie_teste <-tail(serie_limpa+1,5)
+  p<-as.integer(length(serie_limpa)*0.1)
+  serie_treino <- head(serie_limpa + 1,-p)
+  serie_teste <-tail(serie_limpa+1,p)
   
   mod_auto <- auto.arima(serie_treino, lambda = 0, max.d = 2)
   
-  # Modelo 2: Conservador (0,1,1)
   mod_manual1 <- Arima(serie_treino, order = c(0, 1, 1), include.drift = FALSE, lambda = 0)
   
-  # Modelo 3: Flexível (0,1,2)
   mod_manual2 <- Arima(serie_treino, order = c(0, 1, 2), include.drift = FALSE, lambda = 0)
   
-  # Modelo 4: (0,2,1)
   mod_manual3 <- Arima(serie_treino, order = c(0, 2, 1), include.drift = FALSE, lambda = 0)
   
-  # Modelo 5: (2,1,0)
   mod_manual4 <- Arima(serie_treino, order = c(2, 1, 0), include.drift = FALSE, lambda = 0)
   
   modelos<-list(mod_auto, mod_manual1, mod_manual2, mod_manual3, mod_manual4)
@@ -149,9 +148,35 @@ for (nome_uf in names(TSs_ufs)) {
   }
   cat("\n")
   melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
-  plot<-autoplot(forecast(melhor_modelo, h=5)) +
+  melhores_modelos[[nome_uf]] <- melhor_modelo
+  plot<-autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
     autolayer(serie_teste, series="Dados Reais") +
     labs(title = str_glue("Previsão Notificação AIDS-{nome_uf} vs Realidade"),
          subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
   show(plot)
+}
+
+for (nome in names(melhores_modelos)){
+  modelo <- melhores_modelos[[nome]]
+  
+  if (is.null(modelo)) {
+    next
+  }
+  
+  cat("\n============================================================\n")
+  cat(str_glue(" ESTADO: {nome} | MODELO: {forecast:::arima.string(modelo)} "))
+  cat("\n============================================================\n")
+  
+  teste <- checkresiduals(modelo, plot = FALSE)
+  print(teste)
+  
+  titulo_personalizado <- str_glue("Resíduos de {forecast:::arima.string(modelo)} - {nome}")
+  
+  grafico_residuos <- ggtsdisplay(residuals(modelo), 
+                                  plot.type = "histogram", 
+                                  main = titulo_personalizado)
+  
+  print(grafico_residuos)
+  
+  Sys.sleep(2)
 }

@@ -92,6 +92,8 @@ for (nome_uf in names(TSs_ufs)) {
   print(plot_final)
 }
 
+melhores_modelos<-list()
+
 #Ajuste de modelos e seleção
 for (nome_uf in names(TSs_ufs)) {
   
@@ -150,9 +152,35 @@ for (nome_uf in names(TSs_ufs)) {
   }
   cat("\n")
   melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
+  melhores_modelos[[nome_uf]]<-melhor_modelo
   plot<-autoplot(forecast(melhor_modelo, h=5)) +
     autolayer(serie_teste, series="Dados Reais") +
     labs(title = str_glue("Previsão Notificação AIDS-{nome_uf} vs Realidade"),
          subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
   show(plot)
+}
+
+for (nome in names(melhores_modelos)){
+  modelo <- melhores_modelos[[nome]]
+  
+  if (is.null(modelo)) {
+    next
+  }
+  
+  cat("\n============================================================\n")
+  cat(str_glue(" ESTADO: {nome} | MODELO: {forecast:::arima.string(modelo)} "))
+  cat("\n============================================================\n")
+  
+  teste <- checkresiduals(modelo, plot = FALSE)
+  print(teste)
+  
+  titulo_personalizado <- str_glue("Resíduos de {forecast:::arima.string(modelo)} - {nome}")
+  
+  grafico_residuos <- ggtsdisplay(residuals(modelo), 
+                                  plot.type = "histogram", 
+                                  main = titulo_personalizado)
+  
+  print(grafico_residuos)
+  
+  Sys.sleep(2)
 }

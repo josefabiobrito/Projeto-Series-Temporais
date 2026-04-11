@@ -114,6 +114,7 @@ safe_Arima <- function(y, order, seasonal = c(0,0,0), ...) {
   }, error = function(e) return(NULL))
 }
 
+melhores_modelos<-list()
 for (nome in names(TSs)) {
   
   dados_brutos <- TSs[[nome]] + 1
@@ -163,6 +164,7 @@ for (nome in names(TSs)) {
     modelos_validos <- modelos[indices_validos]
     aics <- sapply(modelos_validos, function(x) x$aic)
     melhor_modelo <- modelos_validos[[which.min(aics)]]
+    melhores_modelos[[nome]]<-melhor_modelo
     
     tryCatch({
       plot <- autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
@@ -180,4 +182,29 @@ for (nome in names(TSs)) {
     cat("Não foi possível ajustar modelos (dados insuficientes ou erro de convergência).\n")
   }
   cat("\n")
+}
+
+for (nome in names(melhores_modelos)){
+  modelo <- melhores_modelos[[nome]]
+  
+  if (is.null(modelo)) {
+    next
+  }
+  
+  cat("\n============================================================\n")
+  cat(str_glue("{nome} | MODELO: {forecast:::arima.string(modelo)} "))
+  cat("\n============================================================\n")
+  
+  teste <- checkresiduals(modelo, plot = FALSE)
+  print(teste)
+  
+  titulo_personalizado <- str_glue("Resíduos de {forecast:::arima.string(modelo)} - {nome}")
+  
+  grafico_residuos <- ggtsdisplay(residuals(modelo), 
+                                  plot.type = "histogram", 
+                                  main = titulo_personalizado)
+  
+  print(grafico_residuos)
+  
+  Sys.sleep(2)
 }

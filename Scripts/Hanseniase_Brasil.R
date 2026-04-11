@@ -114,3 +114,5 @@ plot<-autoplot(forecast(mod_manual1, h=length(serie_teste))) +
   labs(title = str_glue("Previsão Notificações vs Realidade"),
        subtitle = str_glue("Modelo:{forecast:::arima.string(mod_manual1)}"))
 show(plot)
+
+checkresiduals(melhor_modelo)
