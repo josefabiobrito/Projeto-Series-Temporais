@@ -144,8 +144,11 @@ for (nome in names(TSs)) {
   cat("\n")
   melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
   melhores_modelos[[nome]]<-melhor_modelo
-  plot<-autoplot(forecast(melhor_modelo, h=length(serie_teste))) +
-    autolayer(serie_teste, series="Dados Reais") +
+  inicio <- time(serie_teste)[1] - 1  # 2 anos antes do início do teste
+  
+  plot <- autoplot(forecast(melhor_modelo, h = length(serie_teste))) +
+    autolayer(serie_teste, series = "Dados Reais") +
+    coord_cartesian(xlim = c(inicio, max(time(serie_teste))))+
     labs(title = str_glue("Previsão-{nome} vs Realidade"),
          subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
   show(plot)

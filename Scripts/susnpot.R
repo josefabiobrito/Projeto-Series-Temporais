@@ -14,14 +14,14 @@ SPY<-sunspot.year
 
 class(SPY)
 start(SPY);end(SPY);frequency(SPY)
-plot<-autoplot(sunspot.year,
+plot_SPY<-autoplot(sunspot.year,
          xlab = 'Tempo',
          ylab = 'Número médio',
          size =0.9,
          color = 'blue')+
   labs(title = 'Número médio de manchas solares por ano')+
-  theme_minimal()+
-show(plot)
+  theme_minimal()
+plot_SPY
 #ggsave(filename = "Sunspot.jpg",
 #       plot = plot,
 #       path = "C:/Users/josef/OneDrive/Documentos/PUB/Gráficos",
