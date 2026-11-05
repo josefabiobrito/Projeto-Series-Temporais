@@ -13,6 +13,7 @@ library(dplyr)
 library(lubridate)
 library(xts)
 library(patchwork)
+library(stringr)
 
 #Carregando dados
 dados_dolar<-get_currency("USD","2011-08-01","2025-10-18", "data.frame")
@@ -144,11 +145,11 @@ for (nome in names(TSs)) {
   cat("\n")
   melhor_modelo <- modelos[[which.min(tabela_resultados$AIC)]]
   melhores_modelos[[nome]]<-melhor_modelo
-  inicio <- time(serie_teste)[1] - 1  # 2 anos antes do início do teste
+  n_meses <- 12
   
-  plot <- autoplot(forecast(melhor_modelo, h = length(serie_teste))) +
+  plot <- autoplot(forecast(melhor_modelo, h = length(serie_teste)),
+                   include = n_meses) +
     autolayer(serie_teste, series = "Dados Reais") +
-    coord_cartesian(xlim = c(inicio, max(time(serie_teste))))+
     labs(title = str_glue("Previsão-{nome} vs Realidade"),
          subtitle = str_glue("Modelo:{forecast:::arima.string(melhor_modelo)}"))
   show(plot)
