@@ -14,7 +14,6 @@ O material foi desenvolvido com foco no rigor estatístico, cobrindo desde a fun
 ## Tecnologias e Ferramentas
 
 * Linguagem R
-* RMarkdown
 * Pacotes principais: `forecast`, `ggplot2`
 
 ## Instalação
@@ -27,6 +26,6 @@ cd Tutorial-Series-Temporais
 ## Estrutura do Repositório
 
 ├── Datasets/
-├── Gráficos/
+├── Apostila.pdf
 ├── scripts/
 └── README.md
